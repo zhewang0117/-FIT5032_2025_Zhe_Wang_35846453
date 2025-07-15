@@ -59,28 +59,35 @@
     </div>
   </div>
 
-  <div class="row mt-5" v-if="submittedCards.length">
-   <div class="d-flex flex-wrap justify-content-start">
-      <div v-for="(card, index) in submittedCards" :key="index" class="card m-2" style="width: 18rem;">
-         <div class="card-header">
-            User Information
-         </div>
-         <ul class="list-group list-group-flush">
-            <li class="list-group-item">Username: {{ card.username }}</li>
-            <li class="list-group-item">Password: {{ card.password }}</li>
-            <li class="list-group-item">Australian Resident: {{ card.isAustralian ? 'Yes' : 'No' }}</li>
-            <li class="list-group-item">Gender: {{ card.gender }}</li>
-            <li class="list-group-item">Reason: {{ card.reason }}</li>
-         </ul>
-      </div>
-   </div>
-</div>
+  <div class="row mt-5 d-flex justify-content-center" v-if="submittedCards.length">
+    <div class="col-10">
+      <DataTable 
+        :value="submittedCards" 
+        striped 
+        bordered 
+        responsive 
+        class="p-datatable-sm w-100"
+      >
+        <Column field="username" header="Username"></Column>
+        <Column field="password" header="Password"></Column>
+        <Column field="isAustralian" header="Australian Resident">
+          <template #body="{ data }">
+            {{ data.isAustralian ? 'Yes' : 'No' }}
+          </template>
+        </Column>
+        <Column field="gender" header="Gender"></Column>
+        <Column field="reason" header="Reason"></Column>
+      </DataTable>
+    </div>
+  </div>
 </template>
 
 
 <script setup>
 // Our logic will go here
 import { ref } from 'vue';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
   
 const formData = ref({
     username: '',
@@ -94,13 +101,12 @@ const submittedCards = ref([]);
 
 
 const submitForm = () => {
-  // 验证所有字段（强制显示错误信息）
+  
   validateName(true);
   validatePassword(true);
   validateGender(true);
   validateReason(true);
-  
-  // 检查所有错误状态
+
   if (!errors.value.username && 
       !errors.value.password && 
       !errors.value.gender &&
@@ -119,6 +125,10 @@ const clearForm = () => {
     reason: '',
     gender: ''
   };
+
+  Object.keys(errors.value).forEach(key => {
+    errors.value[key] = null;
+  });
 };
 
 const errors = ref(
@@ -151,7 +161,11 @@ const validatePassword = (blur) => {
         if (blur) errors.value.password = `Password must be at least ${minLength} characters long.`;
     } else if (!hasUppercase) {
         if (blur) errors.value.password = "Password must contain at least one uppercase letter.";
-    } else if (!hasLowercase) {
+    } 
+      else if (/\s/.test(password)) {
+        if (blur) errors.value.password = "Password cannot contain spaces";
+    }
+    else if (!hasLowercase) {
         if (blur) errors.value.password = "Password must contain at least one lowercase letter.";
     } else if (!hasNumber) {
         if (blur) errors.value.password = "Password must contain at least one number.";
@@ -172,9 +186,19 @@ const validateGender = (blur) => {
   }
 };
 
+
+
 const validateReason = (blur) => {
-  if (!formData.value.reason) {
-    if (blur) errors.value.reason = "Please provide a reason for joining";
+  const reason = formData.value.reason;
+  const minLength = 10;
+  const maxLength = 200;
+  
+  if (!reason) {
+    if (blur) errors.value.reason = "Reason is required";
+  } else if (reason.length < minLength) {
+    if (blur) errors.value.reason = `Reason must be at least ${minLength} characters`;
+  } else if (reason.length > maxLength) {
+    if (blur) errors.value.reason = `Reason must be less than ${maxLength} characters`;
   } else {
     errors.value.reason = null;
   }
