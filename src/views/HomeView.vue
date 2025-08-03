@@ -3,7 +3,8 @@
   <div class="container mt-5">
     <div class="row">
       <div class="col-md-8 offset-md-2">
-        <h1 class="text-center">User Information Form</h1>
+        <h1 class="text-center fw-bold">🗄 W5 Library Registration Form</h1>
+        <p class="text-center">Let's bulid some more advanced features into our form</p> 
         <form @submit.prevent="submitForm">
           <div class="row mb-3">
             <!-- <div class="col-md-6"> -->
@@ -15,22 +16,7 @@
                 </div>
             </div>
             <!-- <div class="col-md-6"> -->
-            <div class="col-sm-6">
-                <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password"
-                    @blur="validatePassword(true)"
-                    @input="validatePassword(false)"
-                     v-model="formData.password" />
-              <div v-if="errors.password" class="text-danger">{{ errors.password }}</div>
-            </div>
-          </div>
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="isAustralian" v-model="formData.isAustralian">
-                <label class="form-check-label" for="isAustralian">Australian Resident?</label>
-              </div>
-            </div>
+            
             <div class="col-md-6">
               <label for="gender" class="form-label">Gender</label>
               <select class="form-select" id="gender" @blur="validateGender(true)" v-model="formData.gender">
@@ -42,17 +28,52 @@
                    {{ errors.gender }}
                </div>
             </div>
+
+          </div>
+          <div class="row mb-3">
+            
+            <div class="col-sm-6">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password"
+                    @blur="validatePassword(true)"
+                    @input="validatePassword(false)"
+                     v-model="formData.password" />
+              <div v-if="errors.password" class="text-danger">{{ errors.password }}</div>
+            </div>
+            
+            <div class="col-md-6 col-sm-6">
+             <label for="confirm-password" class="form-label">Confirm password</label>
+             <input
+               type="password"
+               class="form-control"
+               id="confirm-password"
+               v-model="formData.confirmPassword"
+               @blur="validateConfirmPassword(true)"
+                  />
+               <div v-if="errors.confirmPassword" class="text-danger">{{ errors.confirmPassword }}</div>
+              </div>
+
+              <div class="col-md-6">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="isAustralian" v-model="formData.isAustralian">
+                <label class="form-check-label" for="isAustralian">Australian Resident?</label>
+              </div>
+            </div>
           </div>
           <div class="mb-3">
             <label for="reason" class="form-label">Reason for joining</label>
-            <textarea class="form-control" id="reason" rows="3" @blur="validateReason(true)" v-model="formData.reason"></textarea>
-            <div v-if="errors.reason" class="text-danger">
+            <textarea class="form-control" id="reason" rows="3" @blur="validateReason(true)" @input="checkFriend" v-model="formData.reason"></textarea>
+            <div v-if="errors.reason" :class="errors.reason === 'Great to have a friend!' ? 'text-success' : 'text-danger'">
               {{ errors.reason }}
             </div>
           </div>
           <div class="text-center">
             <button type="submit" class="btn btn-primary me-2">Submit</button>
             <button type="button" class="btn btn-secondary" @click="clearForm">Clear</button>
+          </div>
+          <div class="mb-3">
+            <label for="suburb" class="form-label">Suburb</label>
+            <input type="text" class="form-control" id="suburb" v-bind:value="formData.suburb" />
           </div>
         </form>
       </div>
@@ -94,7 +115,9 @@ const formData = ref({
     password: '',
     isAustralian: false,
     reason: '',
-    gender: ''
+    confirmPassword: '',
+    gender: '',
+    suburb: 'Clayton'
 });
 
 const submittedCards = ref([]);
@@ -106,12 +129,15 @@ const submitForm = () => {
   validatePassword(true);
   validateGender(true);
   validateReason(true);
+  validateConfirmPassword(true); // 新增：验证确认密码
 
-  if (!errors.value.username && 
-      !errors.value.password && 
-      !errors.value.gender &&
-      !errors.value.reason) {
-        
+ const hasError = errors.value.username || 
+                  errors.value.password || 
+                  errors.value.gender ||
+                  errors.value.confirmPassword ||
+                  (errors.value.reason && errors.value.reason !== "Great to have a friend!");
+
+  if (!hasError) {
     submittedCards.value.push({ ...formData.value });
     clearForm();
   }
@@ -121,6 +147,7 @@ const clearForm = () => {
   formData.value = {
     username: '',
     password: '',
+    confirmPassword:'',
     isAustralian: false,
     reason: '',
     gender: ''
@@ -135,6 +162,7 @@ const errors = ref(
   {
     username: null,
     password: null,
+    confirmPassword:null,
     resident: null,
     reason: null,
     gender: null,
@@ -188,21 +216,50 @@ const validateGender = (blur) => {
 
 
 
+const checkFriend = () => {
+  const reason = formData.value.reason;
+  if (reason && reason.toLowerCase().includes('friend')) {
+    errors.value.reason = "Great to have a friend!";
+  } else if (!errors.value.reason || errors.value.reason === "Great to have a friend!") {
+    // 清除 friend 提示（如果没有其他错误）
+    errors.value.reason = null;
+  }
+};
+
 const validateReason = (blur) => {
   const reason = formData.value.reason;
   const minLength = 10;
   const maxLength = 200;
-  
+  let newError = null;
+
+  // 1. 检查必填和长度等错误
   if (!reason) {
-    if (blur) errors.value.reason = "Reason is required";
+    newError = "Reason is required";
   } else if (reason.length < minLength) {
-    if (blur) errors.value.reason = `Reason must be at least ${minLength} characters`;
+    newError = `Reason must be at least ${minLength} characters`;
   } else if (reason.length > maxLength) {
-    if (blur) errors.value.reason = `Reason must be less than ${maxLength} characters`;
-  } else {
-    errors.value.reason = null;
+    newError = `Reason must be less than ${maxLength} characters`;
+  }
+
+  // 2. 只有在没有其他错误时，才检查 friend 关键词
+  if (!newError && reason && reason.toLowerCase().includes('friend')) {
+    newError = "Great to have a friend!";
+  }
+
+  // 3. 更新错误状态（仅在失焦时）
+  if (blur) {
+    errors.value.reason = newError;
   }
 };
+
+
+const validateConfirmPassword = (blur) => {
+  if (formData.value.password !== formData.value.confirmPassword) {
+    if (blur) errors.value.confirmPassword = 'Passwords do not match.'
+  } else {
+    errors.value.confirmPassword = null
+  }
+}
 
 
 </script>

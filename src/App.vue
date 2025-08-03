@@ -1,17 +1,38 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-import NavigationBar from './components/NavigationBar.vue'
-import JSON from './components/JSON.vue'
-import Form from './components/Form.vue'
-</script>
 
 <template>
-  
-    <!-- <JSON/>  -->
-    <Form/> 
-  
+  <div class="main-container">
+    <header>
+      <BHeader />
+      <nav>
+        <router-link to="/">Home</router-link> |
+        <router-link v-if="isAuthenticated" to="/about">About</router-link>
+        <span v-if="isAuthenticated"> | <button @click="logout">Logout</button></span>
+        <router-link v-else to="/login">Login</router-link>
+      </nav>
+    </header>
+    <main class="main-box">
+      <router-view></router-view>
+      <!-- <JSONLab /> -->
+    </main>
+  </div>
 </template>
+
+<script setup>
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+import BHeader from './components/BHeader.vue';
+
+const router = useRouter();
+
+const isAuthenticated = computed(() => {
+  return localStorage.getItem('isAuthenticated') === 'true';
+});
+
+const logout = () => {
+  localStorage.removeItem('isAuthenticated');
+  router.push('/login');
+};
+</script>
 
 <style scoped>
 header {
