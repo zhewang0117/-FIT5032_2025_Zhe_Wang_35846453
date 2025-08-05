@@ -74,7 +74,7 @@
       //Get the current weather icon using the API link
       iconUrl() {
         return this.weatherData
-          ? `http://api.openweathermap.org/img/w/${this.weatherData.weather[0].icon}.png`
+          ? `https://api.openweathermap.org/img/w/${this.weatherData.weather[0].icon}.png`
           : null;
       },
     },
@@ -94,7 +94,7 @@
           navigator.geolocation.getCurrentPosition(async (position) => {
             const { latitude, longitude } = position.coords;
             //API link to obtain the current weather based on the current location browser identified 
-            const url = `http://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apikey}`;
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apikey}`;
             //await means wait for the fetchWeatherData method to complete before proceeding
             await this.fetchWeatherData(url);
           });
@@ -113,7 +113,7 @@
          if (!this.city.trim()) return; // 为空时不执行
   
           // 构建按城市名搜索的 API 地址
-                const url = `http://api.openweathermap.org/data/2.5/weather?q=${this.city}&appid=${apikey}`;
+                const url = `https://api.openweathermap.org/data/2.5/weather?q=${this.city}&appid=${apikey}`;
                await this.fetchWeatherData(url); // 复用已有的数据获取方法
           }
     }
