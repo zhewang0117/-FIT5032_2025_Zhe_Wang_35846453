@@ -6,6 +6,7 @@
       <nav>
         <router-link to="/">Home</router-link> |
         <router-link v-if="isAuthenticated" to="/about">About</router-link>
+        <router-link to="/GetAllBookAPI">Get All Books API</router-link>
         <span v-if="isAuthenticated"> | <button @click="logout">Logout</button></span>
         <router-link v-else to="/login">Login</router-link>
       </nav>
